@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pronosticador Mundial 2026 · Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a1410;--bg2:#0f1d17;--panel:#11231b;--line:#1e3a2c;--chalk:#eaf3ee;--muted:#7c9a8a;--lime:#b4ff3a;--lime-dim:#7bbf2a;--amber:#ffc24b}
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  body{background:radial-gradient(1100px 500px at 50% -10%,#14291e 0%,transparent 60%),var(--bg);color:var(--chalk);font-family:'Inter',system-ui,sans-serif;min-height:100dvh;-webkit-text-size-adjust:100%}
+  .wrap{max-width:560px;margin:0 auto;padding:18px 16px 60px}
+  header.top{display:flex;align-items:baseline;gap:10px;margin:4px 2px 6px}
+  header.top .dot{width:9px;height:9px;border-radius:50%;background:var(--lime);box-shadow:0 0 14px var(--lime);align-self:center}
+  header.top h1{font-family:'Anton',sans-serif;font-weight:400;letter-spacing:.5px;font-size:clamp(22px,7vw,30px);line-height:.95;margin:0;text-transform:uppercase}
+  header.top h1 span{color:var(--lime)}
+  header.top p{margin:0;color:var(--muted);font-size:12px}
+  .src{font-size:11px;color:var(--lime-dim);margin:0 2px 16px;letter-spacing:.3px}
+  .src b{color:var(--chalk)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+  .matchup{display:grid;grid-template-columns:1fr 40px 1fr;gap:10px;align-items:end}
+  .teamcol label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 2px 6px}
+  select,input[type=text]{width:100%;background:#0c1812;border:1px solid var(--line);color:var(--chalk);border-radius:11px;padding:12px 10px;font-size:15px;font-family:inherit;appearance:none}
+  select:focus,input:focus{outline:2px solid var(--lime-dim);outline-offset:1px;border-color:transparent}
+  .swap{height:46px;border:1px solid var(--line);background:#0c1812;color:var(--lime);border-radius:11px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .swap:active{transform:scale(.93)}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .meta .full{grid-column:1 / -1}
+  .meta small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 2px 5px}
+  .row-toggle{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14px}
+  .switch{position:relative;width:46px;height:26px;flex:0 0 auto}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;background:#16291f;border:1px solid var(--line);border-radius:30px;transition:.15s;cursor:pointer}
+  .slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;top:3px;background:var(--muted);border-radius:50%;transition:.15s}
+  .switch input:checked + .slider{background:rgba(180,255,58,.18);border-color:var(--lime-dim)}
+  .switch input:checked + .slider:before{transform:translateX(20px);background:var(--lime)}
+  details.adv{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+  details.adv summary{cursor:pointer;color:var(--muted);font-size:12px;letter-spacing:.5px;list-style:none}
+  details.adv summary::-webkit-details-marker{display:none}
+  details.adv summary:before{content:"▸ ";color:var(--lime)}
+  details.adv[open] summary:before{content:"▾ "}
+  .lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:12px 2px 6px;display:block}
+  .odds3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .odds2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .generate{width:100%;margin-top:16px;background:var(--lime);color:#0a1410;border:none;border-radius:13px;padding:15px;font-weight:700;font-size:16px;font-family:inherit;letter-spacing:.3px;cursor:pointer;box-shadow:0 6px 20px rgba(180,255,58,.22)}
+  .generate:active{transform:translateY(1px)}
+  .ticket-head{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 8px}
+  .ticket-head span{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .copybtn{background:#16291f;border:1px solid var(--line);color:var(--lime);border-radius:9px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+  .copybtn:active{transform:scale(.96)}
+  .copybtn.ok{background:var(--lime);color:#0a1410;border-color:var(--lime)}
+  pre.ticket{background:#0b1813;border:1px solid var(--line);border-radius:14px;padding:16px 14px;margin:0;white-space:pre-wrap;word-wrap:break-word;font-family:'JetBrains Mono','Roboto Mono',ui-monospace,monospace;font-size:12.5px;line-height:1.5;color:var(--chalk);overflow-x:auto}
+  .foot{color:var(--muted);font-size:11px;text-align:center;margin-top:16px;line-height:1.6}
+  .foot b{color:var(--lime-dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <span class="dot"></span>
+    <div>
+      <h1>Pronosticador <span>Mundial · Pro</span></h1>
+      <p>Poisson + Dixon-Coles anclado a Elo oficial</p>
+    </div>
+  </header>
+  <p class="src">📡 Elo <b id="srcDate">eloratings.net · jun 2026</b> · <span id="srcMode">datos incrustados</span></p>
+
+  <div class="card">
+    <div class="matchup">
+      <div class="teamcol"><label>Equipo Local</label><select id="teamA"></select></div>
+      <button class="swap" id="swap" title="Intercambiar">⇄</button>
+      <div class="teamcol"><label>Equipo Visitante</label><select id="teamB"></select></div>
+    </div>
+
+    <div class="meta">
+      <div><small>Hora</small><input type="text" id="hora" value="22:00" placeholder="22:00"></div>
+      <div><small>Etiqueta (ej. 4/4)</small><input type="text" id="etiqueta" value="" placeholder="opcional"></div>
+      <div class="full"><small>Sede / Estadio</small><input type="text" id="sede" value="" placeholder="Sede por definir"></div>
+    </div>
+
+    <div class="row-toggle">
+      <label class="switch"><input type="checkbox" id="neutral" checked><span class="slider"></span></label>
+      <span id="neutralTxt">Cancha neutral (sin localía)</span>
+    </div>
+
+    <details class="adv">
+      <summary>Avanzado · cuotas del mercado (detector de valor) y ajustes</summary>
+      <div class="meta">
+        <div><small>Competencia</small><input type="text" id="comp" value="Copa del Mundo"></div>
+        <div><small>Nombre del bot</small><input type="text" id="bot" value="Las Jijas del Tío Bot VIP"></div>
+      </div>
+      <span class="lbl">Cuotas 1X2 del mercado (decimal)</span>
+      <div class="odds3">
+        <input type="text" id="oL" placeholder="Local" inputmode="decimal">
+        <input type="text" id="oE" placeholder="Empate" inputmode="decimal">
+        <input type="text" id="oV" placeholder="Visita" inputmode="decimal">
+      </div>
+      <div class="odds2">
+        <input type="text" id="oOver" placeholder="Over 2.5" inputmode="decimal">
+        <input type="text" id="oBtts" placeholder="Ambos Sí" inputmode="decimal">
+      </div>
+    </details>
+
+    <button class="generate" id="gen">⚡ Generar pronóstico</button>
+  </div>
+
+  <div class="ticket-head"><span>Salida · lista para Telegram</span><button class="copybtn" id="copy">Copiar</button></div>
+  <pre class="ticket" id="out">Elige los dos equipos y presiona Generar.</pre>
+
+  <p class="foot">Elo <b>real</b> (eloratings.net). El detector de valor compara el modelo contra tu cuota, <b>pero el mercado casi siempre tiene razón</b>: ninguna herramienta le gana a la casa a largo plazo. Úsalo para contenido y análisis, no como dinero seguro. Juega con responsabilidad.</p>
+</div>
+
+<script>
+/* ====== ELO REAL · eloratings.net · jun 2026 · [nombre,bandera,elo,rank,slug] ====== */
+let TEAMS = [
+["España","🇪🇸",2171,1,"esp"],["Argentina","🇦🇷",2113,2,"arg"],["Francia","🇫🇷",2063,3,"fra"],["Inglaterra","🏴",2042,4,"eng"],
+["Colombia","🇨🇴",1998,5,"col"],["Brasil","🇧🇷",1979,6,"bra"],["Portugal","🇵🇹",1976,7,"por"],["Países Bajos","🇳🇱",1959,8,"ned"],
+["Croacia","🇭🇷",1933,9,"cro"],["Ecuador","🇪🇨",1933,9,"ecu"],["Noruega","🇳🇴",1922,11,"nor"],["Alemania","🇩🇪",1910,12,"ger"],
+["Suiza","🇨🇭",1897,13,"sui"],["Uruguay","🇺🇾",1890,14,"uru"],["Turquía","🇹🇷",1880,15,"tur"],["Japón","🇯🇵",1879,16,"jpn"],
+["Senegal","🇸🇳",1869,17,"sen"],["Dinamarca","🇩🇰",1864,18,"den"],["Italia","🇮🇹",1859,19,"ita"],["Bélgica","🇧🇪",1849,20,"bel"],
+["México","🇲🇽",1834,21,"mex"],["Paraguay","🇵🇾",1833,22,"par"],["Austria","🇦🇹",1818,23,"aut"],["Marruecos","🇲🇦",1806,24,"mar"],
+["Canadá","🇨🇦",1806,24,"can"],["Ucrania","🇺🇦",1802,26,"ukr"],["Escocia","🏴",1790,27,"sco"],["Corea del Sur","🇰🇷",1784,28,"kor"],
+["Rusia","🇷🇺",1782,29,"rus"],["Australia","🇦🇺",1774,30,"aus"],["Serbia","🇷🇸",1769,31,"srb"],["Grecia","🇬🇷",1761,32,"gre"],
+["Irán","🇮🇷",1754,33,"irn"],["Estados Unidos","🇺🇸",1747,34,"usa"],["Panamá","🇵🇦",1743,35,"pan"],["Nigeria","🇳🇬",1739,36,"nga"],
+["Polonia","🇵🇱",1735,37,"pol"],["Uzbekistán","🇺🇿",1735,37,"uzb"],["Chequia","🇨🇿",1731,39,"cze"],["Chile","🇨🇱",1731,39,"chi"],
+["Argelia","🇩🇿",1728,41,"alg"],["Gales","🏴",1715,42,"wal"],["Venezuela","🇻🇪",1715,42,"ven"],["Kosovo","🇽🇰",1714,44,"kvx"],
+["Perú","🇵🇪",1708,45,"per"],["Hungría","🇭🇺",1698,46,"hun"],["Eslovenia","🇸🇮",1695,47,"svn"],["Jordania","🇯🇴",1691,48,"jor"],
+["Irlanda","🇮🇪",1688,49,"irl"],["Eslovaquia","🇸🇰",1687,50,"svk"],["Bolivia","🇧🇴",1665,51,"bol"],["Albania","🇦🇱",1664,52,"alb"],
+["Suecia","🇸🇪",1660,53,"swe"],["Egipto","🇪🇬",1660,53,"egy"],["Georgia","🇬🇪",1650,55,"geo"],["Rumania","🇷🇴",1642,56,"rou"],
+["RD Congo","🇨🇩",1639,57,"cod"],["Costa de Marfil","🇨🇮",1637,58,"civ"],["Costa Rica","🇨🇷",1632,59,"crc"],["Israel","🇮🇱",1631,60,"isr"],
+["Túnez","🇹🇳",1614,61,"tun"],["Camerún","🇨🇲",1606,62,"cmr"],["Irlanda del Norte","🇬🇧",1602,63,"nir"],["Macedonia del Norte","🇲🇰",1592,64,"mkd"],
+["Arabia Saudita","🇸🇦",1592,64,"ksa"],["Malí","🇲🇱",1589,66,"mli"],["Nueva Zelanda","🇳🇿",1586,67,"nzl"],["Irak","🇮🇶",1583,68,"irq"],
+["Bosnia y Herzegovina","🇧🇦",1571,69,"bih"],["Honduras","🇭🇳",1567,70,"hon"],["Islandia","🇮🇸",1566,71,"isl"],["Cabo Verde","🇨🇻",1561,72,"cpv"],
+["Haití","🇭🇹",1542,73,"hai"],["Angola","🇦🇴",1541,74,"ang"],["Emiratos Árabes Unidos","🇦🇪",1540,75,"uae"],["Burkina Faso","🇧🇫",1533,76,"bfa"],
+["Jamaica","🇯🇲",1530,77,"jam"],["Sudáfrica","🇿🇦",1529,78,"rsa"],["Guatemala","🇬🇹",1526,79,"gua"],["Ghana","🇬🇭",1509,80,"gha"],
+["Finlandia","🇫🇮",1509,80,"fin"],["Bielorrusia","🇧🇾",1496,82,"blr"],["Omán","🇴🇲",1490,83,"oma"],["Siria","🇸🇾",1487,84,"syr"],
+["Guinea","🇬🇳",1485,85,"gui"],["Palestina","🇵🇸",1470,86,"ple"],["Curazao","🇨🇼",1467,87,"cuw"],["Bulgaria","🇧🇬",1453,88,"bul"],
+["Montenegro","🇲🇪",1444,89,"mne"],["Surinam","🇸🇷",1440,90,"sur"],["Catar","🇶🇦",1427,91,"qat"],["Libia","🇱🇾",1424,92,"lby"],
+["Gambia","🇬🇲",1424,92,"gam"],["Baréin","🇧🇭",1417,94,"bhr"],["Benín","🇧🇯",1411,95,"ben"],["Kazajistán","🇰🇿",1410,96,"kaz"],
+["Gabón","🇬🇦",1405,97,"gab"],["Níger","🇳🇪",1404,98,"nig"]
+].map(t=>({name:t[0],flag:t[1],elo:t[2],rank:t[3],slug:t[4]}));
+
+function recomputeRanks(){
+  const s=[...TEAMS].sort((a,b)=>b.elo-a.elo); let r=0,prev=null;
+  s.forEach((t,i)=>{ if(t.elo!==prev){r=i+1;prev=t.elo;} t.rank=r; });
+}
+function sortAlpha(){ TEAMS.sort((a,b)=>a.name.localeCompare(b.name,'es')); }
+let F={}; function indexF(){ F=Object.fromEntries(TEAMS.map(t=>[t.name,t])); }
+
+/* ====== MODELO ====== */
+const HA=100, GOAL_FLOOR=0.30, RHO=0.10;
+function fact(n){let r=1;for(let i=2;i<=n;i++)r*=i;return r;}
+function pois(k,l){return Math.exp(-l)*Math.pow(l,k)/fact(k);}
+function dcMatrix(xA,xB){
+  const N=10, M=[]; let s=0;
+  for(let i=0;i<=N;i++){M[i]=[];for(let j=0;j<=N;j++){
+    let p=pois(i,xA)*pois(j,xB);
+    if(i===0&&j===0)p*=(1-xA*xB*RHO);
+    else if(i===0&&j===1)p*=(1+xA*RHO);
+    else if(i===1&&j===0)p*=(1+xB*RHO);
+    else if(i===1&&j===1)p*=(1-RHO);
+    M[i][j]=p; s+=p;
+  }}
+  for(let i=0;i<=N;i++)for(let j=0;j<=N;j++)M[i][j]/=s;
+  return M;
+}
+function winExp(T,S){const xA=Math.max(.05,T/2+S/2),xB=Math.max(.05,T/2-S/2);const M=dcMatrix(xA,xB);let pH=0,pD=0;for(let i=0;i<=10;i++)for(let j=0;j<=10;j++){if(i>j)pH+=M[i][j];else if(i===j)pD+=M[i][j];}return pH+.5*pD;}
+
+function predict(a,b,neutral){
+  const dr=(a.elo+(neutral?0:HA))-b.elo;
+  const We=1/(1+Math.pow(10,-dr/400));
+  const avg=(a.elo+b.elo)/2;
+  let T=Math.max(2.4,Math.min(3.0,2.55+(avg-1750)/700));
+  let lo=-4,hi=4; for(let it=0;it<44;it++){const m=(lo+hi)/2;if(winExp(T,m)<We)lo=m;else hi=m;}
+  const S=(lo+hi)/2;
+  const xA=Math.max(GOAL_FLOOR,T/2+S/2), xB=Math.max(GOAL_FLOOR,T/2-S/2);
+  const M=dcMatrix(xA,xB);
+  let pH=0,pD=0,pA=0,btts=0; const lineProb={};
+  for(let i=0;i<=10;i++)for(let j=0;j<=10;j++){const p=M[i][j];
+    if(i>j)pH+=p;else if(i===j)pD+=p;else pA+=p;
+    if(i>=1&&j>=1)btts+=p;
+    const tot=i+j; lineProb[tot]=(lineProb[tot]||0)+p;
+  }
+  const over=k=>{let s=0;for(const t in lineProb)if(+t>k)s+=lineProb[t];return s;};
+  // marcadores más probables
+  const sc=[]; for(let i=0;i<=6;i++)for(let j=0;j<=6;j++)sc.push([M[i][j],i,j]);
+  sc.sort((x,y)=>y[0]-x[0]);
+  // hándicap del favorito por 2+
+  const favHome=pH>=pA;
+  let fav2=0; for(let i=0;i<=10;i++)for(let j=0;j<=10;j++){if(favHome?(i-j>=2):(j-i>=2))fav2+=M[i][j];}
+  return {xA,xB,pH,pD,pA,over25:over(2),over15:over(1),over35:over(3),btts,scores:sc.slice(0,3),fav2,favHome,We};
+}
+
+/* forma: real (últimos 5) si hay datos en vivo; si no, tendencia por rating (etiquetada) */
+let FORMS={};
+function seed(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return()=>{h+=0x6D2B79F5;let t=Math.imul(h^h>>>15,1|h);t^=t+Math.imul(t^t>>>7,61|t);return((t^t>>>14)>>>0)/4294967296;};}
+function dotsFromStr(f){return f.toUpperCase().split('').map(c=>c==='W'?'🟢':c==='D'?'⚪':'🔴').join('');}
+function formaLine(t){
+  const f=FORMS[t.slug];
+  if(typeof f==='string'&&/^[WDL]{5}$/i.test(f))return{dots:dotsFromStr(f),real:true};
+  const r=seed(t.name+t.elo),pg=Math.max(.18,Math.min(.82,.30+(t.elo-1750)/520));let s="";
+  for(let i=0;i<5;i++){const x=r();s+=x<pg?"🟢":(x<pg+(1-pg)*.35?"⚪":"🔴");}
+  return{dots:s,real:false};
+}
+
+const pct=x=>Math.round(x*100);
+const od=p=>p>0?(1/p).toFixed(2):"—";
+function valueTag(p,odd){ if(!(odd>1))return ""; const edge=p*odd-1; if(edge>=0.03)return ` 🟢 VALOR +${Math.round(edge*100)}%`; if(edge<=-0.03)return ` 🔴 sin valor`; return ` ⚪ justa`; }
+
+function buildTicket(){
+  const a=F[teamA.value], b=F[teamB.value];
+  if(!a||!b)return "Selecciona ambos equipos.";
+  if(a.name===b.name)return "Elige dos equipos distintos.";
+  const neutral=document.getElementById('neutral').checked;
+  const hora=document.getElementById('hora').value.trim()||"—";
+  const sede=document.getElementById('sede').value.trim()||"Sede por definir";
+  const comp=document.getElementById('comp').value.trim()||"Copa del Mundo";
+  const bot=document.getElementById('bot').value.trim()||"Bot VIP";
+  const etiq=document.getElementById('etiqueta').value.trim();
+
+  const r=predict(a,b,neutral);
+  let h=pct(r.pH), v=pct(r.pA), d=100-h-v;
+  const maxp=Math.max(r.pH,r.pD,r.pA);
+  const fav=(r.pH>=r.pA&&r.pH>=r.pD)?a.name:(r.pA>=r.pD?b.name:"Empate");
+  const favPct=maxp===r.pH?h:(maxp===r.pA?v:d);
+  const conf = maxp>=0.70?"Fuerte":maxp>=0.57?"Clara":maxp>=0.45?"Ligera":"Pareja";
+  const confEmoji = maxp>=0.70?"🔥🔥":maxp>=0.57?"🔥":maxp>=0.45?"♨️":"⚖️";
+
+  // doble oportunidad
+  const dc1x=r.pH+r.pD, dc12=r.pH+r.pA, dcx2=r.pD+r.pA;
+  // marcadores
+  const sct=r.scores.map(s=>`${s[1]}-${s[2]} (${pct(s[0])}%)`).join("  ·  ");
+  const favName=r.favHome?a.name:b.name;
+
+  const masGol=r.xA>=r.xB?a:b, xMas=(r.xA>=r.xB?r.xA:r.xB).toFixed(2), xMen=(r.xA>=r.xB?r.xB:r.xA).toFixed(2);
+  const localTxt=neutral?"Cancha neutral (sin localía).":`Localía para ${a.name} (+100 Elo).`;
+  const narr=`📝 ${masGol.name} con mayor expectativa goleadora (${xMas} vs ${xMen}). ${localTxt} Probabilidades ancladas a la expectativa Elo real, con ajuste Dixon-Coles para marcadores bajos. Marcador más probable ${r.scores[0][1]}-${r.scores[0][2]}.`;
+
+  // mercado / valor
+  const oL=parseFloat(document.getElementById('oL').value),oE=parseFloat(document.getElementById('oE').value),oV=parseFloat(document.getElementById('oV').value);
+  const oOver=parseFloat(document.getElementById('oOver').value),oBtts=parseFloat(document.getElementById('oBtts').value);
+  let refBlock, valBlock="";
+  if(oL>1&&oE>1&&oV>1){
+    let iL=1/oL,iE=1/oE,iV=1/oV;const s=iL+iE+iV;
+    const mktFav=(iL>=iV&&iL>=iE)?a.name:(iV>=iE?b.name:"Empate");
+    refBlock=`┈┈┈┈┈┈┈┈┈┈┈┈
+📡 Mercado vs modelo
+💰 Cuotas: L ${oL} · E ${oE} · V ${oV}
+📊 Mercado: ${Math.round(iL/s*100)}/${Math.round(iE/s*100)}/${Math.round(iV/s*100)}  →  ${mktFav}
+${mktFav===fav?"🤝 Coincide":"⚠️ Discrepa (la casa puede saber algo: investiga antes de confiar)"}`;
+  }else{
+    refBlock=`┈┈┈┈┈┈┈┈┈┈┈┈
+🧮 Cuotas justas del modelo (1/prob)
+🏠 ${a.name} @${od(r.pH)} · 🤝 X @${od(r.pD)} · ✈️ ${b.name} @${od(r.pA)}`;
+  }
+  const vlines=[];
+  if(oL>1)vlines.push(`• ${a.name} @${oL}${valueTag(r.pH,oL)}`);
+  if(oV>1)vlines.push(`• ${b.name} @${oV}${valueTag(r.pA,oV)}`);
+  if(oOver>1)vlines.push(`• Over 2.5 @${oOver}${valueTag(r.over25,oOver)}`);
+  if(oBtts>1)vlines.push(`• Ambos Sí @${oBtts}${valueTag(r.btts,oBtts)}`);
+  if(vlines.length)valBlock=`\n🎯 Detector de valor (vs tu cuota)\n${vlines.join("\n")}\n⚠️ El "valor" suele ser ilusorio: la casa ya tiene el Elo metido.`;
+
+  const fA=formaLine(a), fB=formaLine(b);
+  const formaHdr=(fA.real&&fB.real)?"Forma últimos 5 (real)":(fA.real||fB.real)?"Forma últimos 5 (real / tendencia)":"Forma (tendencia por rating)";
+
+  const topBar=etiq?`┏━━━━━━ ${etiq} ━━━━━━┓`:`┏━━━━━━━━━━━━━━━━┓`;
+  const neutralLabel=neutral?"cancha neutral":`localía: ${a.name}`;
+
+  return `🤖 ${bot}
+${topBar}
+${a.flag} ${a.name}  –  ${b.name} ${b.flag}
+┗━━━━━━━━━━━━━━━━━━┛
+🏆 ${comp} · 🕒 ${hora}
+🏟️ ${sede} · ${neutralLabel}
+
+📊 Elo real: ${a.name} ${a.elo} (#${a.rank})  vs  ${b.name} ${b.elo} (#${b.rank})
+
+🎯 Favorito: ${fav}
+🟢 ${a.name} ${h}%   ⚪ Empate ${d}%   🔴 ${b.name} ${v}%
+${confEmoji} Confianza: ${conf} (${favPct}%) — no es certeza
+
+⚽ Goles esperados: ${r.xA.toFixed(1)} – ${r.xB.toFixed(1)}
+📈 Over 1.5: ${pct(r.over15)}%  ·  Over 2.5: ${pct(r.over25)}%  ·  Over 3.5: ${pct(r.over35)}%
+🤝 Ambos anotan: ${pct(r.btts)}%
+🔢 Marcadores probables: ${sct}
+↔️ Doble oport.: 1X ${pct(dc1x)}% · 12 ${pct(dc12)}% · X2 ${pct(dcx2)}%
+🅰️ Hándicap: ${favName} -1.5 → ${pct(r.fav2)}%
+
+${narr}
+
+📊 ${formaHdr}
+${a.flag} ${a.name}: ${fA.dots}${fA.real?"":" (est.)"}
+${b.flag} ${b.name}: ${fB.dots}${fB.real?"":" (est.)"}
+
+${refBlock}${valBlock}
+
+🧮 Resumen
+• Resultado: ${fav}, lo más probable (${favPct}%)
+• Marcador estrella: ${r.scores[0][1]}-${r.scores[0][2]} (${pct(r.scores[0][0])}%)
+• Goles: ${pct(r.over25)>=50?"más":"menos"} de 2.5 (${pct(r.over25)}%)
+• Ambos anotan: ${pct(r.btts)>=50?"sí":"no"} (${pct(r.btts)}%)
+
+⚠️ Análisis estadístico sobre Elo real, no una apuesta segura. Ningún modelo le gana a la casa a largo plazo. Juega con responsabilidad.`;
+}
+
+/* ====== UI ====== */
+const teamA=document.getElementById('teamA'), teamB=document.getElementById('teamB');
+function fill(){
+  const cur=[teamA.value,teamB.value];
+  const opts=TEAMS.map(t=>`<option value="${t.name}">${t.flag} ${t.name}</option>`).join('');
+  teamA.innerHTML=opts; teamB.innerHTML=opts;
+  teamA.value=cur[0]&&F[cur[0]]?cur[0]:"Turquía";
+  teamB.value=cur[1]&&F[cur[1]]?cur[1]:"Paraguay";
+}
+function render(){document.getElementById('out').textContent=buildTicket();}
+document.getElementById('swap').onclick=()=>{[teamA.value,teamB.value]=[teamB.value,teamA.value];render();};
+document.getElementById('neutral').onchange=function(){document.getElementById('neutralTxt').textContent=this.checked?"Cancha neutral (sin localía)":"Con localía para el equipo local";render();};
+document.getElementById('gen').onclick=render;
+['teamA','teamB','hora','sede','etiqueta','comp','bot','oL','oE','oV','oOver','oBtts'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{if(document.getElementById('out').textContent.length>40)render();}));
+document.getElementById('copy').onclick=async function(){
+  const txt=document.getElementById('out').textContent;
+  try{await navigator.clipboard.writeText(txt);}catch(e){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}
+  this.textContent="✓ Copiado";this.classList.add('ok');setTimeout(()=>{this.textContent="Copiar";this.classList.remove('ok');},1500);
+};
+
+/* ====== ELO EN VIVO (opcional, mismo origen → sin CORS) ====== */
+async function loadLive(){
+  try{
+    const res=await fetch('ratings.json?t='+Date.now(),{cache:'no-store'});
+    if(!res.ok)return;
+    const data=await res.json();           // { "tur":1880, "par":1833, ..., "__date":"19 jun 2026" }
+    let n=0; TEAMS.forEach(t=>{ if(typeof data[t.slug]==='number'){t.elo=data[t.slug];n++;} });
+    if(data.__form&&typeof data.__form==='object')FORMS=data.__form;
+    if(n>0){
+      recomputeRanks(); sortAlpha(); indexF(); fill();
+      document.getElementById('srcMode').textContent=`en vivo · ${n} selecciones`;
+      if(data.__date)document.getElementById('srcDate').textContent='eloratings.net · '+data.__date;
+      render();
+    }
+  }catch(e){/* sin ratings.json → usa Elo incrustado */}
+}
+
+recomputeRanks(); sortAlpha(); indexF(); fill(); render();
+loadLive();
+</script>
+</body>
+</html>
