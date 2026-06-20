@@ -1,1 +1,37 @@
+# Guarda este archivo en:  .github/workflows/update-elo.yml
+# Actualiza ratings.json solo (Elo en vivo) sin que toques nada.
 
+name: Actualizar Elo
+
+on:
+  schedule:
+    - cron: '0 9 * * *'   # todos los días 9:00 UTC (~3:00 a.m. Honduras)
+  workflow_dispatch:        # botón para correrlo a mano desde la pestaña Actions
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Bajar Elo y escribir ratings.json
+        run: node fetch-elo.js
+
+      - name: Commit si cambió
+        run: |
+          if [ -n "$(git status --porcelain ratings.json)" ]; then
+            git config user.name "elo-bot"
+            git config user.email "actions@github.com"
+            git add ratings.json
+            git commit -m "Elo actualizado"
+            git push
+          else
+            echo "Sin cambios."
+          fi
