@@ -1,1 +1,40 @@
+# Guarda este archivo en:  .github/workflows/update-elo.yml
+# Actualiza ratings.json (Elo + forma) y results.json (marcadores) sin que toques nada.
 
+name: Actualizar Elo
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'   # cada 4 horas (durante el Mundial los resultados entran el mismo día)
+  workflow_dispatch:          # boton para correrlo a mano
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Bajar Elo, forma y resultados
+        run: node fetch-elo.js
+        env:
+          FD_KEY: ${{ secrets.FD_KEY }}   # llave gratis de football-data.org (opcional)
+
+      - name: Commit si cambio
+        run: |
+          git config user.name "elo-bot"
+          git config user.email "actions@github.com"
+          git add ratings.json
+          [ -f results.json ] && git add results.json
+          if [ -n "$(git status --porcelain --cached)" ]; then
+            git commit -m "Datos actualizados"
+            git push
+          else
+            echo "Sin cambios."
+          fi
