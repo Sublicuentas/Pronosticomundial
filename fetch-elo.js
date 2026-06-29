@@ -1,5 +1,6 @@
-// fetch-elo.js — Elo real (worldcupelo) + forma últimos 5 (footballratings) + resultados (football-data.org)
-// Escribe ratings.json y results.json en el repo → la web los lee sin CORS.
+// fetch-elo.js — Elo real (worldcupelo) + forma últimos 5 (footballratings)
+// + resultados y fixtures resueltos de TODAS las rondas (football-data.org)
+// Escribe ratings.json, results.json y wc_fixtures.json en el repo (la web los lee sin CORS).
 // Node 20+ (fetch global). Lo corre la GitHub Action.
 const fs = require('fs');
 
@@ -22,11 +23,10 @@ const SLUG2NAME = {
 const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z]/g,'');
 const NAME2SLUG = {};
 for (const [slug,name] of Object.entries(SLUG2NAME)) NAME2SLUG[norm(name)] = slug;
-// alias por distintas grafías (footballratings / football-data)
 Object.assign(NAME2SLUG, {
-  [norm('Czech Republic')]:'cze', [norm('Cote dIvoire')]:'civ', [norm('Cote d Ivoire')]:'civ',
+  [norm('Czech Republic')]:'cze', [norm('Cote dIvoire')]:'civ', [norm('Cote d Ivoire')]:'civ', [norm('Côte dIvoire')]:'civ',
   [norm('Korea Republic')]:'kor', [norm('Korea South')]:'kor', [norm('South Korea')]:'kor',
-  [norm('IR Iran')]:'irn', [norm('Turkiye')]:'tur', [norm('Congo DR')]:'cod', [norm('DR Congo')]:'cod',
+  [norm('IR Iran')]:'irn', [norm('Turkiye')]:'tur', [norm('Türkiye')]:'tur', [norm('Congo DR')]:'cod', [norm('DR Congo')]:'cod',
   [norm('Bosnia and Herzegovina')]:'bih', [norm('Cabo Verde')]:'cpv', [norm('United States')]:'usa',
   [norm('USA')]:'usa', [norm('UAE')]:'uae', [norm('Curaçao')]:'cuw', [norm('Saudi Arabia')]:'ksa'
 });
@@ -70,26 +70,31 @@ function harvestForms(node,out){
   fs.writeFileSync('ratings.json', JSON.stringify(out));
   console.log(`ratings.json · ${Object.keys(elos).length} Elo · ${Object.keys(forms).length} con forma`);
 
-  // 3) RESULTADOS (football-data.org) — requiere la llave gratis en el secret FD_KEY
+  // 3) RESULTADOS + FIXTURES de TODAS las rondas (football-data.org) — requiere FD_KEY
   const FD=process.env.FD_KEY;
-  if(!FD){ console.log('Sin FD_KEY: sin auto-marcadores (la entrada manual sigue activa).'); return; }
+  if(!FD){ console.log('Sin FD_KEY: sin auto-marcadores ni fixtures resueltos (manual sigue activo).'); return; }
   try{
     const r=await fetch('https://api.football-data.org/v4/competitions/WC/matches',{headers:{'X-Auth-Token':FD}});
     const j=await r.json();
-    const matches=[];
+    const STAGE={GROUP_STAGE:'Grupo',LAST_32:'16avos',LAST_16:'Octavos',QUARTER_FINALS:'Cuartos',SEMI_FINALS:'Semifinal',THIRD_PLACE:'3er lugar',FINAL:'Final'};
+    const matches=[], fixtures=[];
     (j.matches||[]).forEach(m=>{
-      if(m.status!=='FINISHED')return;
-      const hs=m.score&&m.score.fullTime?m.score.fullTime.home:null;
-      const as=m.score&&m.score.fullTime?m.score.fullTime.away:null;
-      if(hs==null||as==null)return;
       const home=NAME2SLUG[norm((m.homeTeam&&(m.homeTeam.name||m.homeTeam.shortName))||'')];
       const away=NAME2SLUG[norm((m.awayTeam&&(m.awayTeam.name||m.awayTeam.shortName))||'')];
-      if(!home||!away)return;
-      matches.push({home,away,hs,as,date:(m.utcDate||'').slice(0,10)});
+      if(!home||!away)return; // aún sin resolver (placeholder)
+      // fixture resuelto
+      let tag=STAGE[m.stage]||'';
+      if(m.stage==='GROUP_STAGE'){ const g=(m.group||'').replace('GROUP_',''); tag=g?('Grupo '+g):'Grupo'; }
+      fixtures.push({kickoffUtc:m.utcDate, hs:home, as:away, stadium:m.venue||'', city:'', tag});
+      // resultado si terminó
+      if(m.status==='FINISHED'){
+        const hs=m.score&&m.score.fullTime?m.score.fullTime.home:null;
+        const as=m.score&&m.score.fullTime?m.score.fullTime.away:null;
+        if(hs!=null&&as!=null) matches.push({home,away,hs,as,date:(m.utcDate||'').slice(0,10)});
+      }
     });
-    if(matches.length){
-      fs.writeFileSync('results.json', JSON.stringify({matches,__date:out.__date}));
-      console.log(`results.json · ${matches.length} partidos terminados`);
-    } else console.log('FD: aún sin partidos terminados mapeados.');
-  }catch(e){ console.error('Resultados fetch falló:',e.message); }
+    if(matches.length){ fs.writeFileSync('results.json', JSON.stringify({matches,__date:out.__date})); console.log(`results.json · ${matches.length} terminados`); }
+    if(fixtures.length){ fs.writeFileSync('wc_fixtures.json', JSON.stringify({fixtures,__date:out.__date})); console.log(`wc_fixtures.json · ${fixtures.length} partidos resueltos`); }
+    else console.log('FD: aún sin partidos resueltos mapeados.');
+  }catch(e){ console.error('football-data fetch falló:',e.message); }
 })();
